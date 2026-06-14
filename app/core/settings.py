@@ -1,0 +1,82 @@
+from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    # Pydantic-settings автоматически читает переменные из .env файла
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+    # App
+    app_env: str = "development"
+    app_debug: bool = False
+    secret_key: str
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 30
+
+    # PostgreSQL
+    postgres_user: str
+    postgres_password: str
+    postgres_db: str
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+
+    # Redis
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    cache_ttl_seconds: int = 300
+
+    # RabbitMQ
+    rabbitmq_user: str = "guest"
+    rabbitmq_password: str = "guest"
+    rabbitmq_host: str = "localhost"
+    rabbitmq_port: int = 5672
+
+    # Email
+    mail_username: str = ""
+    mail_password: str = ""
+    mail_from: str = "noreply@habitflow.app"
+    mail_server: str = "smtp.gmail.com"
+    mail_port: int = 587
+    mail_tls: bool = True
+
+    # Строки подключения собираем из частей — не храним целиком в .env
+    @property
+    def database_url(self) -> str:
+        # asyncpg — асинхронный драйвер для SQLAlchemy
+        return (
+            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def database_url_sync(self) -> str:
+        # psycopg2 — синхронный драйвер, нужен только для Alembic
+        return (
+            f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+    @property
+    def rabbitmq_url(self) -> str:
+        return (
+            f"amqp://{self.rabbitmq_user}:{self.rabbitmq_password}"
+            f"@{self.rabbitmq_host}:{self.rabbitmq_port}//"
+        )
+
+
+# lru_cache — .env читается один раз при старте, не при каждом запросе
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()
