@@ -3,7 +3,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # Pydantic-settings автоматически читает переменные из .env файла
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -22,7 +21,7 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
     postgres_host: str = "localhost"
-    postgres_port: int = 5432
+    postgres_port: int = 5433  # 5433 потому что 5432 занят локальным PostgreSQL
 
     # Redis
     redis_host: str = "localhost"
@@ -44,10 +43,9 @@ class Settings(BaseSettings):
     mail_port: int = 587
     mail_tls: bool = True
 
-    # Строки подключения собираем из частей — не храним целиком в .env
     @property
     def database_url(self) -> str:
-        # asyncpg — асинхронный драйвер для SQLAlchemy
+        # asyncpg — для FastAPI (async)
         return (
             f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
@@ -55,9 +53,9 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
-        # psycopg2 — синхронный драйвер, нужен только для Alembic
+        # psycopg v3 — для Alembic (sync)
         return (
-            f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql+psycopg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
@@ -73,7 +71,6 @@ class Settings(BaseSettings):
         )
 
 
-# lru_cache — .env читается один раз при старте, не при каждом запросе
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
