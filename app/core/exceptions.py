@@ -22,7 +22,7 @@ class UnauthorizedError(AppError):
     status_code: int = field(default=401, init=False)
 
 @dataclass
-class ForbidenError(AppError):
+class ForbiddenError(AppError):
     """Нет прав на действие ошибка 403"""
     status_code: int = field(default=403, init=False)
 

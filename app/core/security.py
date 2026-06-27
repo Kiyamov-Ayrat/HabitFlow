@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from app.core.settings import settings
 
 # bcrypt — стандарт хеширования паролей.
-pwd_context = CryptContext(schemes=["bycript"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Подписи JWT
 ALGORITHM = "HS256"

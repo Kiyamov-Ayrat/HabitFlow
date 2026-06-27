@@ -8,10 +8,11 @@ services:
       POSTGRES_USER: habitflow
       POSTGRES_PASSWORD: habitflow_pass
       POSTGRES_DB: habitflow_db
+      POSTGRES_HOST_AUTH_METHOD: md5
     ports:
-      - "5432:5432"          # порт снаружи : порт внутри контейнера
+      - "5433:5432"    # снаружи 5433, внутри контейнера 5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data   # данные не теряются при перезапуске
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U habitflow -d habitflow_db"]
       interval: 5s
